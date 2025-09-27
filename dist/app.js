@@ -1,4 +1,4 @@
-// app.js
+// app.js — منطق اپ + Lazy-load ECharts + SW update badge
 import { db, seedIfEmpty } from './db.js';
 
 const $ = sel => document.querySelector(sel);
@@ -7,13 +7,9 @@ const fmtT = n => new Intl.NumberFormat('fa-IR').format(n|0);
 const todayKey = () => new Date().toISOString().slice(0,10);
 const state = { user:null, theme:'dark', accent:'warm', geminiKey:null };
 
+/* Utilities */
 function setPlan(role){ $('#planBadge').textContent = role==='admin' ? 'Pro' : 'Free' }
-function applyTheme(){
-  const light = state.theme==='light';
-  document.documentElement.dataset.theme = light ? 'light' : '';
-}
-$('#themeSel').addEventListener('change', (e)=>{ state.theme = e.target.value; applyTheme(); });
-
+function applyTheme(){ document.documentElement.dataset.theme = (state.theme==='light') ? 'light' : '' }
 function responsive(){
   const menuBtn = $('#menuBtn'), sidebar = $('#sidebar');
   if (window.innerWidth < 720){
@@ -25,6 +21,21 @@ function responsive(){
   }
 }
 window.addEventListener('resize', responsive);
+$('#themeSel').addEventListener('change', (e)=>{ state.theme = e.target.value; applyTheme(); });
+
+/* Lazy-load a script (for ECharts) */
+function ensureScript(src){
+  return new Promise((resolve, reject)=>{
+    if ([...document.scripts].some(s=> s.src===src)) return resolve();
+    const s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = resolve; s.onerror = reject; document.head.appendChild(s);
+  });
+}
+async function ensureECharts(){
+  if (!window.echarts){
+    await ensureScript('https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js');
+  }
+}
 
 /* Router */
 function showView(name){
@@ -116,9 +127,7 @@ async function openRuleEditor(sectionId){
     alert('قوانین ذخیره شد.');
   };
 }
-function bindTierRemove(){
-  $$('#tiersWrap .rem-tier').forEach(btn=> btn.onclick = ()=> btn.closest('.row')?.remove());
-}
+function bindTierRemove(){ $$('#tiersWrap .rem-tier').forEach(btn=> btn.onclick = ()=> btn.closest('.row')?.remove()); }
 
 /* Products */
 let editingProdId = null;
@@ -141,9 +150,7 @@ async function renderProducts(){
     tbody.appendChild(tr);
   }
   tbody.querySelectorAll('.edit').forEach(b=> b.onclick = ()=> openProdForm(b.dataset.id));
-  tbody.querySelectorAll('.del').forEach(b=> b.onclick = async ()=>{
-    if (confirm('حذف محصول؟')){ await db.products.delete(b.dataset.id); renderProducts(); }
-  });
+  tbody.querySelectorAll('.del').forEach(b=> b.onclick = async ()=>{ if (confirm('حذف محصول؟')){ await db.products.delete(b.dataset.id); renderProducts(); }});
 }
 $('#prodSearch').addEventListener('input', renderProducts);
 $('#prodSectionFilter').addEventListener('change', renderProducts);
@@ -327,6 +334,7 @@ async function convertToSale(orderId){
 
 /* Reports (Pro) */
 async function renderReports(){
+  await ensureECharts();
   const orders = (await db.orders.where('type').equals('sale').toArray());
   const byDay = {};
   orders.forEach(o=>{
@@ -366,6 +374,7 @@ $('#plPrint').onclick = ()=> window.print();
 
 /* Dashboard */
 async function renderDashboard(){
+  await ensureECharts();
   const salesToday = (await db.orders.where('type').equals('sale').toArray())
     .filter(o=> new Date(o.createdAt).toISOString().slice(0,10)===todayKey())
     .reduce((s,o)=>s+o.total,0);
@@ -379,7 +388,6 @@ async function renderDashboard(){
 
   const lowStock = (await db.products.toArray()).filter(p=> (p.stock||0) < 10).length;
   $('#kpiLowStock').textContent = lowStock;
-
   $('#kpiDebtors').textContent = '—';
 
   const el = document.getElementById('chartSales');
@@ -467,18 +475,20 @@ $('#loginAdmin').onclick = async ()=>{ state.user = { role:'admin' }; setPlan('a
 /* SW + Update */
 async function initSW(){
   if (!('serviceWorker' in navigator)) return;
-  const reg = await navigator.serviceWorker.register('./sw.js');
-  if (reg.waiting){ $('#updateBadge').classList.remove('hidden'); $('#updateBadge').onclick = ()=> reg.waiting.postMessage({type:'SKIP_WAITING'}); }
-  reg.addEventListener('updatefound', ()=>{
-    const sw = reg.installing;
-    sw?.addEventListener('statechange', ()=>{
-      if (sw.state==='installed' && navigator.serviceWorker.controller){
-        $('#updateBadge').classList.remove('hidden');
-        $('#updateBadge').onclick = ()=> sw.postMessage({type:'SKIP_WAITING'});
-      }
+  try{
+    const reg = await navigator.serviceWorker.register('./sw.js');
+    if (reg.waiting){ $('#updateBadge').classList.remove('hidden'); $('#updateBadge').onclick = ()=> reg.waiting.postMessage({type:'SKIP_WAITING'}); }
+    reg.addEventListener('updatefound', ()=>{
+      const sw = reg.installing;
+      sw?.addEventListener('statechange', ()=>{
+        if (sw.state==='installed' && navigator.serviceWorker.controller){
+          $('#updateBadge').classList.remove('hidden');
+          $('#updateBadge').onclick = ()=> sw.postMessage({type:'SKIP_WAITING'});
+        }
+      });
     });
-  });
-  navigator.serviceWorker.addEventListener('controllerchange', ()=> location.reload());
+    navigator.serviceWorker.addEventListener('controllerchange', ()=> location.reload());
+  }catch(e){ console.warn('SW register failed', e); }
 }
 
 /* Start */
