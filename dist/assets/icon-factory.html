@@ -1,7 +1,6 @@
 <!DOCTYPE html><html lang="fa"><head><meta charset="utf-8"><title>Icon Factory</title></head>
 <body style="font-family:sans-serif">
 <h3>ساخت آیکن‌های PWA از SVG</h3>
-<p>لوگو را انتخاب کنید (SVG)، سپس دکمه‌ها را بزنید.</p>
 <input type="file" id="file" accept=".svg">
 <div>
   <button onclick="make(192)">ساخت icon-192.png</button>
@@ -17,7 +16,7 @@ function make(size, maskable=false){
   ctx.fillStyle= maskable?'#0B1220':'#ffffff'; ctx.fillRect(0,0,size,size);
   const img=new Image(); const blob=new Blob([svgText],{type:'image/svg+xml'}); img.src=URL.createObjectURL(blob);
   img.onload=()=>{
-    const pad= size*0.14; // safe zone
+    const pad= size*0.14;
     ctx.drawImage(img, pad, pad, size-2*pad, size-2*pad);
     const a=document.createElement('a'); a.download= maskable? 'maskable-512.png': `icon-${size}.png`;
     a.href=c.toDataURL('image/png'); a.click();
