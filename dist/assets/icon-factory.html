@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="fa"><head><meta charset="utf-8"><title>Icon Factory</title></head>
+<body style="font-family:sans-serif">
+<h3>ساخت آیکن‌های PWA از SVG</h3>
+<p>لوگو را انتخاب کنید (SVG)، سپس دکمه‌ها را بزنید.</p>
+<input type="file" id="file" accept=".svg">
+<div>
+  <button onclick="make(192)">ساخت icon-192.png</button>
+  <button onclick="make(512)">ساخت icon-512.png</button>
+  <button onclick="make(512,true)">ساخت maskable-512.png</button>
+</div>
+<canvas id="c" width="512" height="512" style="display:none"></canvas>
+<script>
+let svgText=''; document.getElementById('file').onchange= async e=>{const f=e.target.files[0]; svgText=await f.text(); alert('SVG بارگذاری شد!')};
+function make(size, maskable=false){
+  if(!svgText) return alert('اول SVG را انتخاب کنید');
+  const c=document.getElementById('c'), ctx=c.getContext('2d'); c.width=c.height=size;
+  ctx.fillStyle= maskable?'#0B1220':'#ffffff'; ctx.fillRect(0,0,size,size);
+  const img=new Image(); const blob=new Blob([svgText],{type:'image/svg+xml'}); img.src=URL.createObjectURL(blob);
+  img.onload=()=>{
+    const pad= size*0.14; // safe zone
+    ctx.drawImage(img, pad, pad, size-2*pad, size-2*pad);
+    const a=document.createElement('a'); a.download= maskable? 'maskable-512.png': `icon-${size}.png`;
+    a.href=c.toDataURL('image/png'); a.click();
+  };
+}
+</script>
+</body></html>
