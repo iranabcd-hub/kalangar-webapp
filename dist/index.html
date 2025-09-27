@@ -4,22 +4,28 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>کالانگار — مدیریت هوشمند کسب‌وکار</title>
-  <meta name="description" content="کالانگار؛ راهکار یکپارچه مدیریت کاتالوگ، انبار، فروش و حسابداری با حالت آفلاین و PWA">
-  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="کالانگار؛ راهکار یکپارچه برای کاتالوگ، انبار، فروش، فاکتور و گزارش‌ها با حالت آفلاین (PWA).">
 
+  <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" sizes="180x180" href="./assets/icon-192.png">
   <meta name="theme-color" content="#FF6B3D">
 
+  <!-- Fonts (بهبود کارایی) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js" defer></script>
+
+  <!-- Preload hero اختیاری -->
   <link rel="preload" as="image" href="./assets/hero.jpg">
+
+  <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <!-- Login Overlay -->
-  <div id="loginOverlay" class="login-wrap">
+  <div id="loginOverlay" class="login-wrap" role="dialog" aria-label="انتخاب نقش کاربری">
     <div class="login-card">
       <div class="brand">
         <img src="./assets/logo-mark-warm.svg" alt="لوگوی کالانگار" width="28" height="28">
@@ -33,7 +39,10 @@
       </div>
       <div class="footer">
         <span>آفلاین‌اول • PWA</span>
-        <a href="./privacy.html" target="_blank">حریم‌خصوصی</a> • <a href="./terms.html" target="_blank">قوانین</a>
+        <span>
+          <a href="./privacy.html" target="_blank" rel="noopener">حریم‌خصوصی</a> •
+          <a href="./terms.html" target="_blank" rel="noopener">قوانین</a>
+        </span>
       </div>
     </div>
   </div>
@@ -58,8 +67,9 @@
     </header>
 
     <aside id="sidebar" aria-label="ناوبری اصلی">
-      <div class="hero-card">
-        <img src="./assets/hero.jpg" alt="" loading="lazy">
+      <div class="hero-card" aria-hidden="true">
+        <img src="./assets/hero.jpg" alt="" loading="lazy"
+             onerror="this.src='https://images.unsplash.com/photo-1544989164-31dc3c645987?q=80&w=1600&auto=format&fit=crop'">
         <div class="overlay">
           <div class="title">مدیریت هوشمند</div>
           <div class="sub">انبار، فروش، حسابداری</div>
