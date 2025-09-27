@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>کالانگار — مدیریت هوشمند کسب‌وکار</title>
+  <meta name="description" content="کالانگار؛ راهکار یکپارچه مدیریت کاتالوگ، انبار، فروش و حسابداری با حالت آفلاین و PWA">
+  <meta name="color-scheme" content="light dark">
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/icon-192.png">
+  <meta name="theme-color" content="#FF6B3D">
+
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js" defer></script>
+  <link rel="preload" as="image" href="./assets/hero.jpg">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <!-- Login Overlay -->
+  <div id="loginOverlay" class="login-wrap">
+    <div class="login-card">
+      <div class="brand">
+        <img src="./assets/logo-mark-warm.svg" alt="لوگوی کالانگار" width="28" height="28">
+        <b>کالانگار</b>
+        <span class="badge">مدیریت هوشمند کسب‌وکار</span>
+      </div>
+      <p class="muted">یک نقش را انتخاب کنید:</p>
+      <div class="row">
+        <button id="loginDemo" class="btn">ورود به نسخه Demo (Free)</button>
+        <button id="loginAdmin" class="btn ghost">ورود به نسخه Admin (Pro)</button>
+      </div>
+      <div class="footer">
+        <span>آفلاین‌اول • PWA</span>
+        <a href="./privacy.html" target="_blank">حریم‌خصوصی</a> • <a href="./terms.html" target="_blank">قوانین</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="app">
+    <header>
+      <div class="brand">
+        <button id="menuBtn" class="btn-sm ghost" aria-label="باز/بسته‌کردن منو">☰</button>
+        <img src="./assets/logo-mark-warm.svg" alt="" width="24" height="24" aria-hidden="true">
+        <span>کالانگار</span>
+        <span id="planBadge" class="plan">Free</span>
+      </div>
+      <div class="actions">
+        <select id="themeSel" class="btn-sm ghost" aria-label="تم">
+          <option value="dark" selected>تیره</option>
+          <option value="light">روشن</option>
+        </select>
+        <button id="backupBtn" class="btn-sm ghost">پشتیبان‌گیری</button>
+        <button id="restoreBtn" class="btn-sm ghost">بازیابی</button>
+        <span id="updateBadge" class="badge hidden">نسخه جدید آماده بروزرسانی</span>
+      </div>
+    </header>
+
+    <aside id="sidebar" aria-label="ناوبری اصلی">
+      <div class="hero-card">
+        <img src="./assets/hero.jpg" alt="" loading="lazy">
+        <div class="overlay">
+          <div class="title">مدیریت هوشمند</div>
+          <div class="sub">انبار، فروش، حسابداری</div>
+        </div>
+      </div>
+      <nav>
+        <div class="item active" data-route="dashboard">داشبورد</div>
+        <div class="item" data-route="catalog">کاتالوگ</div>
+        <div class="item" data-route="products">محصولات</div>
+        <div class="item" data-route="customers">مشتریان</div>
+        <div class="item" data-route="proforma">پیش‌فاکتور</div>
+        <div class="item" data-route="orders">سفارش‌ها</div>
+        <div class="item" data-route="reports">گزارش‌ها (Pro)</div>
+        <div class="item" data-route="public">کاتالوگ عمومی</div>
+        <div class="item" data-route="settings">تنظیمات</div>
+        <div class="item" data-route="ai">مشاور هوشمند (Pro)</div>
+      </nav>
+    </aside>
+
+    <main>
+      <!-- Dashboard -->
+      <section id="view-dashboard">
+        <div class="toolbar">
+          <h1 class="title">داشبورد</h1>
+          <span class="muted" id="bizInfoBrief"></span>
+        </div>
+        <div class="cards">
+          <div class="card"><div class="muted">فروش امروز</div><div id="kpiSalesToday" class="kpi">—</div></div>
+          <div class="card"><div class="muted">فروش ماه</div><div id="kpiSalesMonth" class="kpi">—</div></div>
+          <div class="card"><div class="muted">موجودی بحرانی</div><div id="kpiLowStock" class="kpi">—</div></div>
+          <div class="card"><div class="muted">بدهکاران</div><div id="kpiDebtors" class="kpi">—</div></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div id="chartSales" style="width:100%; height:320px"></div>
+        </div>
+      </section>
+
+      <!-- Catalog -->
+      <section id="view-catalog" class="hidden">
+        <h2 class="title">کاتالوگ — بخش‌ها و قوانین قیمت‌گذاری</h2>
+        <div class="grid2">
+          <div class="card">
+            <h3 class="title">بخش‌ها</h3>
+            <div class="row">
+              <div style="flex:1"><label>نام بخش</label><input id="secName" placeholder="مثلاً افزودنی‌های شیمیایی"></div>
+              <button id="addSection" class="btn">افزودن بخش</button>
+            </div>
+            <table class="table" style="margin-top:10px">
+              <thead><tr><th>#</th><th>نام</th><th>فعال</th><th>قوانین قیمت</th></tr></thead>
+              <tbody id="sectionsTbody"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3 class="title">قوانین قیمت‌گذاری</h3>
+            <div id="ruleBox" class="muted">ابتدا یک بخش انتخاب کنید.</div>
+            <div id="ruleForm" class="hidden">
+              <div class="row">
+                <div><label>مارکاپ همکار</label><input id="partnerMarkup" type="number" value="0"></div>
+                <div><label>مالیات %</label><input id="vatPct" type="number" value="9"></div>
+                <div><label>گِردکردن (قدم)</label><input id="roundStep" type="number" value="1000"></div>
+                <div><label>حالت گرد</label>
+                  <select id="roundMode"><option value="round">round</option><option value="ceil">ceil</option><option value="floor">floor</option></select>
+                </div>
+              </div>
+              <div class="muted" style="margin-top:8px">تیِرها</div>
+              <div id="tiersWrap"></div>
+              <div class="row" style="margin-top:8px">
+                <button id="addTier" class="btn-sm ghost">+ تیِر جدید</button>
+                <button id="saveRule" class="btn" style="margin-inline-start:auto">ذخیره قوانین</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Products -->
+      <section id="view-products" class="hidden">
+        <div class="toolbar">
+          <h2 class="title">محصولات</h2>
+          <div class="row">
+            <input id="prodSearch" placeholder="جستجوی نام/کد">
+            <select id="prodSectionFilter"></select>
+            <button id="newProdBtn" class="btn-sm">+ محصول</button>
+          </div>
+        </div>
+        <div class="card">
+          <table class="table">
+            <thead><tr><th>#</th><th>نام</th><th>کد</th><th>بخش</th><th>قیمت خام</th><th>واحد</th><th>موجودی</th><th>عملیات</th></tr></thead>
+            <tbody id="productsTbody"></tbody>
+          </table>
+        </div>
+        <div id="prodFormCard" class="card hidden" style="margin-top:12px">
+          <h3 class="title" id="prodFormTitle">محصول جدید</h3>
+          <div class="grid3">
+            <div><label>نام</label><input id="pName"></div>
+            <div><label>کد</label><input id="pCode"></div>
+            <div><label>بخش</label><select id="pSection"></select></div>
+            <div><label>قیمت خام</label><input id="pBasePrice" type="number" value="0"></div>
+            <div><label>واحد</label><input id="pUnit" placeholder="کیلو، لیتر، سطل"></div>
+            <div><label>موجودی</label><input id="pStock" type="number" value="0"></div>
+            <div style="grid-column:1/-1"><label>توضیحات</label><textarea id="pDesc" rows="2"></textarea></div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="saveProd" class="btn">ذخیره</button>
+            <button id="cancelProd" class="btn ghost">انصراف</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Customers -->
+      <section id="view-customers" class="hidden">
+        <div class="toolbar"><h2 class="title">مشتریان</h2><button id="newCustomerBtn" class="btn-sm">+ مشتری</button></div>
+        <div class="card">
+          <table class="table"><thead><tr><th>#</th><th>نام</th><th>نوع</th><th>تلفن</th><th>مانده</th><th>عملیات</th></tr></thead><tbody id="customersTbody"></tbody></table>
+        </div>
+        <div id="custFormCard" class="card hidden" style="margin-top:12px">
+          <h3 class="title" id="custFormTitle">مشتری جدید</h3>
+          <div class="grid3">
+            <div><label>نام</label><input id="cName"></div>
+            <div><label>نوع</label><select id="cType"><option value="buyer">خریدار</option><option value="seller">فروشنده</option><option value="both">هر دو</option></select></div>
+            <div><label>تلفن</label><input id="cPhone"></div>
+            <div><label>ایمیل</label><input id="cEmail"></div>
+            <div style="grid-column:1/-1"><label>آدرس</label><textarea id="cAddr" rows="2"></textarea></div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="saveCustomer" class="btn">ذخیره</button>
+            <button id="cancelCustomer" class="btn ghost">انصراف</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Proforma -->
+      <section id="view-proforma" class="hidden">
+        <h2 class="title">پیش‌فاکتور جدید</h2>
+        <div class="card">
+          <div class="row">
+            <div><label>مشتری</label><select id="pfCustomer"></select></div>
+            <div><label>نوع قیمت</label><select id="pfPriceType"><option value="retail">مصرف‌کننده</option><option value="partner">همکار</option></select></div>
+            <div style="margin-inline-start:auto"><button id="pfAddLine" class="btn-sm">+ ردیف</button></div>
+          </div>
+          <table class="table" style="margin-top:10px">
+            <thead><tr><th>#</th><th>کالا</th><th>واحد</th><th>تعداد</th><th>قیمت واحد</th><th>تخفیف</th><th>مبلغ</th><th>حذف</th></tr></thead>
+            <tbody id="pfLines"></tbody>
+            <tfoot>
+              <tr><td colspan="6" class="muted" style="text-align:left">جمع جزء</td><td id="pfSubtotal">—</td><td></td></tr>
+              <tr><td colspan="6" class="muted" style="text-align:left">مالیات</td><td id="pfVAT">—</td><td></td></tr>
+              <tr><td colspan="6" style="text-align:left"><b>جمع کل</b></td><td id="pfTotal"><b>—</b></td><td></td></tr>
+            </tfoot>
+          </table>
+          <div class="row" style="margin-top:10px">
+            <button id="pfSave" class="btn">ذخیره پیش‌فاکتور</button>
+            <button id="pfPrint" class="btn ghost">چاپ</button>
+            <span class="muted">پس از ذخیره می‌توانید به «فروش» تبدیل کنید.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Orders -->
+      <section id="view-orders" class="hidden">
+        <div class="toolbar">
+          <h2 class="title">سفارش‌ها</h2>
+          <div class="row"><select id="ordType"><option value="all">همه</option><option value="proforma">پیش‌فاکتور</option><option value="sale">فروش</option></select></div>
+        </div>
+        <div class="card">
+          <table class="table">
+            <thead><tr><th>#</th><th>نوع</th><th>مشتری</th><th>تاریخ</th><th>جمع کل</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+            <tbody id="ordersTbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Reports -->
+      <section id="view-reports" class="hidden">
+        <h2 class="title">گزارش‌ها</h2>
+        <div id="reportsLock" class="lock hidden">این بخش مخصوص پلن Pro است.</div>
+        <div id="reportsBody" class="hidden">
+          <div class="card"><div id="chartMonthly" style="width:100%; height:360px"></div></div>
+        </div>
+      </section>
+
+      <!-- Public Price List -->
+      <section id="view-public" class="hidden">
+        <h2 class="title">کاتالوگ عمومی / لیست قیمت</h2>
+        <div class="card">
+          <div class="row">
+            <div><label>بخش</label><select id="plSection"></select></div>
+            <div><label>نوع قیمت</label><select id="plType"><option value="retail">مصرف‌کننده</option><option value="partner">همکار</option></select></div>
+            <button id="plGen" class="btn">تولید</button>
+            <button id="plPrint" class="btn ghost">چاپ</button>
+          </div>
+          <table class="table" style="margin-top:10px">
+            <thead><tr><th>#</th><th>نام</th><th>کد</th><th>واحد</th><th>قیمت</th></tr></thead>
+            <tbody id="plTbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="view-settings" class="hidden">
+        <h2 class="title">تنظیمات</h2>
+        <div class="grid2">
+          <div class="card">
+            <h3 class="title">ظاهر</h3>
+            <div class="row">
+              <div><label>تم</label><select id="setTheme"><option value="dark" selected>تیره</option><option value="light">روشن</option></select></div>
+              <div><label>Accent</label>
+                <select id="setAccent">
+                  <option value="warm" selected>نارنجی/قرمز</option>
+                  <option value="indigo">نیلی</option>
+                  <option value="emerald">سبز</option>
+                  <option value="violet">بنفش</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="title">اطلاعات کسب‌وکار</h3>
+            <div class="grid2">
+              <div><label>نام شرکت</label><input id="bizName" placeholder="نام"></div>
+              <div><label>تلفن</label><input id="bizPhone"></div>
+              <div style="grid-column:1/-1"><label>آدرس</label><textarea id="bizAddr" rows="2"></textarea></div>
+            </div>
+            <div class="row" style="margin-top:8px"><button id="saveBiz" class="btn">ذخیره</button></div>
+          </div>
+          <div class="card">
+            <h3 class="title">پشتیبان‌گیری</h3>
+            <div class="row">
+              <button id="exportData" class="btn">دریافت JSON</button>
+              <input type="file" id="importFile" class="hidden" accept="application/json">
+              <button id="importData" class="btn ghost">بازیابی از فایل</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="title">مشاور هوشمند (Gemini)</h3>
+            <div class="grid2">
+              <div style="grid-column:1/-1"><label>API Key</label><input id="geminiKey" placeholder="کلید شخصی شما (در حافظه جلسه)"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Advisor -->
+      <section id="view-ai" class="hidden">
+        <h2 class="title">مشاور هوشمند</h2>
+        <div id="aiLock" class="lock hidden">این بخش مخصوص پلن Pro است.</div>
+        <div id="aiBody" class="card hidden">
+          <div class="row">
+            <textarea id="aiPrompt" rows="3" style="flex:1" placeholder="سوال خود درباره مصالح/افزودنی‌ها را بنویسید..."></textarea>
+            <button id="aiAsk" class="btn">ارسال</button>
+          </div>
+          <div id="aiAnswer" class="card" style="margin-top:10px"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
