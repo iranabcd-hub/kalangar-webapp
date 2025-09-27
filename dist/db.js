@@ -1,13 +1,13 @@
-// db.js
+// db.js — Dexie schema (v2) با ایندکس‌های بیشتر
 import Dexie from 'https://cdn.jsdelivr.net/npm/dexie@3.2.7/dist/dexie.mjs';
 
 export const db = new Dexie('kalangar');
-db.version(1).stores({
+db.version(2).stores({
   sections: 'id,name,active',
   priceRules: 'id,sectionId',
-  products: 'id,sectionId,categoryId,name,code',
+  products: 'id,sectionId,categoryId,name,code,basePrice',
   customers: 'id,name,type,phone',
-  orders: 'id,type,customerId,createdAt',
+  orders: 'id,type,customerId,createdAt,total',
   payments: 'id,customerId,date',
   stockMoves: 'id,productId,date',
   settings: 'id'
